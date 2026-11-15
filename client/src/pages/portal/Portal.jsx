@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Sparkles, Gift, History as HistoryIcon, QrCode } from 'lucide-react';
 import { api } from '../../lib/api.js';
 import StampCard from '../../components/StampCard.jsx';
+import BusinessAvatar from '../../components/BusinessAvatar.jsx';
 import WalletSection from '../../components/WalletSection.jsx';
 import { MovementRow } from '../../components/ui.jsx';
 import { themeOf } from '../../lib/theme.js';
@@ -59,14 +60,10 @@ export default function Portal() {
     <div className="mx-auto min-h-screen max-w-md px-4 py-6 sm:py-10">
       {/* Header */}
       <header className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <span
-            className={`grid h-10 w-10 place-items-center rounded-2xl text-xl shadow-md ${themeOf(data.business?.theme).grad}`}
-          >
-            {data.business?.icon || '🎁'}
-          </span>
-          <div className="leading-tight">
-            <p className="text-base font-extrabold">{data.business?.name || 'PremiaYa'}</p>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <BusinessAvatar business={data.business} size="md" />
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-base font-extrabold">{data.business?.name || 'PremiaYa'}</p>
             <p className="text-xs font-medium text-ink/50">Recompensas</p>
           </div>
         </div>

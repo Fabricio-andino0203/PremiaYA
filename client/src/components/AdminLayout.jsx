@@ -10,8 +10,8 @@ import {
   LogOut,
 } from 'lucide-react';
 import Brand from './Brand.jsx';
+import BusinessAvatar from './BusinessAvatar.jsx';
 import { useAuth } from '../lib/auth.jsx';
-import { themeOf } from '../lib/theme.js';
 
 const NAV = [
   { to: '/admin', end: true, label: 'Dashboard', icon: LayoutDashboard },
@@ -26,7 +26,6 @@ const NAV = [
 export default function AdminLayout() {
   const { user, logout } = useAuth();
   const business = user?.business;
-  const theme = themeOf(business?.theme);
 
   const linkClass = ({ isActive }) =>
     `flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors ${
@@ -42,9 +41,7 @@ export default function AdminLayout() {
         <Brand sub="Fidelización" />
         {business && (
           <div className="flex items-center gap-2.5 rounded-2xl bg-cream px-3 py-2.5">
-            <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg ${theme.soft}`}>
-              {business.icon}
-            </span>
+            <BusinessAvatar business={business} size="sm" />
             <div className="min-w-0 leading-tight">
               <p className="truncate text-sm font-extrabold">{business.name}</p>
               <p className="text-[11px] font-semibold text-ink/45">Plan {business.plan_name}</p>
@@ -73,8 +70,9 @@ export default function AdminLayout() {
         <Brand />
         <div className="flex items-center gap-2">
           {business && (
-            <span className="rounded-full bg-cream px-3 py-1.5 text-xs font-extrabold text-ink/70">
-              {business.icon} {business.name}
+            <span className="flex max-w-[45vw] items-center gap-1.5 rounded-full bg-cream py-1 pl-1 pr-3">
+              <BusinessAvatar business={business} size="sm" className="!h-7 !w-7 !rounded-full !text-sm" />
+              <span className="truncate text-xs font-extrabold text-ink/70">{business.name}</span>
             </span>
           )}
           <button

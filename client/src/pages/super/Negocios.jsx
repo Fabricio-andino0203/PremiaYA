@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Plus, ExternalLink } from 'lucide-react';
 import { api } from '../../lib/api.js';
 import Modal from '../../components/Modal.jsx';
+import BusinessAvatar from '../../components/BusinessAvatar.jsx';
 import {
   PageHeader, Card, PrimaryButton, SecondaryButton, Field, inputClass, ErrorNote,
 } from '../../components/ui.jsx';
@@ -70,9 +71,7 @@ export default function Negocios() {
         <div className="space-y-3">
           {businesses.map((b) => (
             <Card key={b.id} className={`flex flex-wrap items-center gap-3 ${b.status === 'suspended' ? 'opacity-60' : ''}`}>
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cream text-xl">
-                {b.icon}
-              </span>
+              <BusinessAvatar business={b} size="md" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-extrabold">
                   {b.name}

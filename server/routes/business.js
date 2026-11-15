@@ -29,8 +29,25 @@ router.patch('/me', (req, res) => {
     return sendError(res, 400, 'El código de país de WhatsApp debe tener de 1 a 4 dígitos.');
   }
 
-  db.prepare('UPDATE businesses SET name = ?, icon = ?, theme = ?, whatsapp_country_code = ? WHERE id = ?')
-    .run(name, icon, theme, cc, b.id);
+  let logo = b.logo;
+  if (req.body.logo !== undefined) {
+    if (!req.body.logo) {
+      logo = null;
+    } else if (
+      typeof req.body.logo === 'string' &&
+      /^data:image\/(png|jpeg|webp);base64,/.test(req.body.logo)
+    ) {
+      if (req.body.logo.length > 400000) {
+        return sendError(res, 400, 'El logo es demasiado pesado. Usá una imagen más pequeña.');
+      }
+      logo = req.body.logo;
+    } else {
+      return sendError(res, 400, 'Formato de logo inválido (PNG, JPG o WebP).');
+    }
+  }
+
+  db.prepare('UPDATE businesses SET name = ?, icon = ?, theme = ?, whatsapp_country_code = ?, logo = ? WHERE id = ?')
+    .run(name, icon, theme, cc, logo, b.id);
   res.json({ business: businessWithPlan(b.id) });
 });
 

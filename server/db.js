@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
   icon TEXT NOT NULL DEFAULT '🎁',
+  logo TEXT,
   theme TEXT NOT NULL DEFAULT 'berry',
   whatsapp_country_code TEXT NOT NULL DEFAULT '506',
   plan_id INTEGER REFERENCES plans(id),
@@ -157,6 +158,11 @@ CREATE INDEX IF NOT EXISTS idx_movements_customer ON movements(customer_id);
 CREATE INDEX IF NOT EXISTS idx_movements_card ON movements(card_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 `);
+
+// Migraciones aditivas sobre bases existentes
+if (!tableHasColumn('businesses', 'logo')) {
+  db.exec('ALTER TABLE businesses ADD COLUMN logo TEXT');
+}
 
 export const nowISO = () => new Date().toISOString();
 

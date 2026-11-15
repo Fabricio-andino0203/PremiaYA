@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PartyPopper } from 'lucide-react';
 import { api } from '../lib/api.js';
-import { themeOf } from '../lib/theme.js';
+import BusinessAvatar from '../components/BusinessAvatar.jsx';
 import { Field, inputClass, ErrorNote, PrimaryButton } from '../components/ui.jsx';
 
 export default function Registro() {
@@ -39,8 +39,6 @@ export default function Registro() {
     );
   }
 
-  const theme = themeOf(business.theme);
-
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
@@ -63,9 +61,7 @@ export default function Registro() {
   return (
     <div className="mx-auto min-h-screen max-w-md px-4 py-8">
       <header className="mb-6 flex flex-col items-center gap-3 text-center">
-        <span className={`grid h-16 w-16 place-items-center rounded-3xl text-3xl shadow-md ${theme.soft}`}>
-          {business.icon}
-        </span>
+        <BusinessAvatar business={business} size="lg" />
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight">{business.name}</h1>
           <p className="mt-1 text-sm font-semibold text-ink/55">

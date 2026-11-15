@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Upload, Trash2 } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import BusinessAvatar from '../../components/BusinessAvatar.jsx';
 import { useAuth } from '../../lib/auth.jsx';
 import { THEMES, ICON_OPTIONS, formatDate } from '../../lib/theme.js';
 import {
@@ -18,6 +19,7 @@ export default function Configuracion() {
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const fileRef = useRef(null);
 
   const load = () =>
     api.get('/api/business/me').then((d) => {
@@ -27,8 +29,34 @@ export default function Configuracion() {
         icon: d.business.icon,
         theme: d.business.theme,
         whatsapp_country_code: d.business.whatsapp_country_code,
+        logo: d.business.logo || null,
       });
     });
+
+  const pickLogo = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError('');
+    try {
+      const bitmap = await createImageBitmap(file);
+      const max = 256;
+      const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      let dataUrl = canvas.toDataURL('image/png');
+      if (dataUrl.length > 380000) dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      if (dataUrl.length > 380000) {
+        setError('La imagen es demasiado pesada. Probá con otra más simple.');
+        return;
+      }
+      setForm((f) => ({ ...f, logo: dataUrl }));
+    } catch {
+      setError('No se pudo leer la imagen. Usá un PNG o JPG.');
+    }
+  };
 
   useEffect(() => {
     load();
@@ -81,6 +109,34 @@ export default function Configuracion() {
               Tu marca
             </h2>
             <form onSubmit={save} className="space-y-4">
+              <Field label="Logo" hint="PNG, JPG o WebP. Se ajusta a 256px. Si no subís logo, se usa el ícono.">
+                <div className="flex items-center gap-3">
+                  <BusinessAvatar business={{ ...data.business, ...form }} size="lg" />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={pickLogo}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-ink/10 bg-white px-4 py-2 text-xs font-bold text-ink/70 transition hover:bg-ink/5"
+                  >
+                    <Upload size={14} /> Subir logo
+                  </button>
+                  {form.logo && (
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, logo: null }))}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100"
+                    >
+                      <Trash2 size={14} /> Quitar
+                    </button>
+                  )}
+                </div>
+              </Field>
               <Field label="Nombre del negocio">
                 <input
                   className={inputClass}

@@ -21,6 +21,7 @@ router.get('/business/:slug', (req, res) => {
     name: business.name,
     slug: business.slug,
     icon: business.icon,
+    logo: business.logo,
     theme: business.theme,
     templates,
   });

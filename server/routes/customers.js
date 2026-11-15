@@ -56,7 +56,7 @@ router.get('/by-code/:code', (req, res) => {
     .get(req.params.code.trim());
   if (!customer) return sendError(res, 404, 'No encontramos una tarjeta con ese código.');
 
-  const business = db.prepare('SELECT name, slug, icon, theme FROM businesses WHERE id = ?')
+  const business = db.prepare('SELECT name, slug, icon, logo, theme FROM businesses WHERE id = ?')
     .get(customer.business_id);
 
   const templates = db.prepare(`
