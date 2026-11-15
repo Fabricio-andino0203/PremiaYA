@@ -1,0 +1,24 @@
+{
+  "name": "tarjetas-recompensas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n server,client -c blue,magenta \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "cross-env PORT=3001 node --watch server/index.js",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w client",
+    "start": "node server/index.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
