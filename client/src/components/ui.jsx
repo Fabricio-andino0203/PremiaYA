@@ -25,7 +25,7 @@ export function PrimaryButton({ children, className = '', ...props }) {
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-ink px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-ink/85 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-brand-200 transition hover:bg-brand-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${className}`}
     >
       {children}
     </button>
@@ -56,7 +56,7 @@ export function Field({ label, children, hint }) {
 }
 
 export const inputClass =
-  'w-full rounded-2xl border border-ink/10 bg-cream px-4 py-2.5 text-sm font-medium outline-none transition focus:border-rose-300 focus:ring-2 focus:ring-rose-200';
+  'w-full rounded-2xl border border-ink/10 bg-cream px-4 py-2.5 text-sm font-medium outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-200';
 
 export function ErrorNote({ children }) {
   if (!children) return null;

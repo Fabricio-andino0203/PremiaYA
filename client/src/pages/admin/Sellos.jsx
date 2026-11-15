@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Search, Stamp as StampIcon, Gift, QrCode } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import { useAuth } from '../../lib/auth.jsx';
 import StampCard from '../../components/StampCard.jsx';
 import Confetti from '../../components/Confetti.jsx';
 import {
@@ -9,6 +10,7 @@ import {
 import { themeOf } from '../../lib/theme.js';
 
 export default function Sellos() {
+  const { user } = useAuth();
   const [q, setQ] = useState('');
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null); // full profile
@@ -164,6 +166,7 @@ export default function Sellos() {
             <div key={card.id} className="space-y-3">
               <StampCard
                 name={card.template_name}
+                brand={user?.business?.name}
                 icon={card.icon}
                 color={card.color}
                 stampsRequired={card.stamps_required}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Pencil } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import { useAuth } from '../../lib/auth.jsx';
 import StampCard from '../../components/StampCard.jsx';
 import Modal from '../../components/Modal.jsx';
 import {
@@ -18,6 +19,8 @@ const EMPTY_FORM = {
 };
 
 export default function Tarjetas() {
+  const { user } = useAuth();
+  const brand = user?.business?.name;
   const [templates, setTemplates] = useState(null);
   const [rewards, setRewards] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -100,6 +103,7 @@ export default function Tarjetas() {
             <div key={t.id} className={`space-y-3 ${t.active ? '' : 'opacity-55'}`}>
               <StampCard
                 name={t.name}
+                brand={brand}
                 icon={t.icon}
                 color={t.color}
                 stampsRequired={t.stamps_required}
@@ -217,6 +221,7 @@ export default function Tarjetas() {
             </p>
             <StampCard
               name={form.name || 'Nombre de la tarjeta'}
+              brand={brand}
               icon={form.icon}
               color={form.color}
               stampsRequired={Math.min(Math.max(Number(form.stamps_required) || 1, 1), 20)}

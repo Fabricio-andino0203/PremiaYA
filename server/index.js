@@ -1,8 +1,14 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { seedIfEmpty } from './seed.js';
+import { attachUser } from './auth.js';
+import authRouter from './routes/auth.js';
+import superRouter from './routes/super.js';
+import businessRouter from './routes/business.js';
+import publicRouter from './routes/public.js';
 import customersRouter from './routes/customers.js';
 import cardsRouter from './routes/cards.js';
 import templatesRouter from './routes/templates.js';
@@ -10,21 +16,36 @@ import rewardsRouter from './routes/rewards.js';
 import movementsRouter from './routes/movements.js';
 import statsRouter from './routes/stats.js';
 import walletRouter from './routes/wallet.js';
+import { requireSuper, requireBusiness } from './auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 seedIfEmpty();
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
+app.use(cookieParser());
 
+// Sesión disponible en todas las rutas /api
+app.use('/api', attachUser);
+
+// Públicas (portal del cliente, auto-registro, wallet)
+app.use('/api/auth', authRouter);
+app.use('/api/public', publicRouter);
+app.use('/api/wallet', walletRouter);
+
+// Panel del negocio (requireBusiness aplicado por router; by-code queda público)
 app.use('/api/customers', customersRouter);
 app.use('/api/cards', cardsRouter);
 app.use('/api/card-templates', templatesRouter);
 app.use('/api/rewards', rewardsRouter);
 app.use('/api/movements', movementsRouter);
 app.use('/api/stats', statsRouter);
-app.use('/api/wallet', walletRouter);
+app.use('/api/business', requireBusiness, businessRouter);
+
+// Super admin
+app.use('/api/super', requireSuper, superRouter);
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta no encontrada.' }));
 

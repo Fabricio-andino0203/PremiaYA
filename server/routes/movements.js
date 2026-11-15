@@ -1,15 +1,17 @@
 import { Router } from 'express';
 import { db } from '../db.js';
+import { requireBusiness } from '../auth.js';
 
 const router = Router();
+router.use(requireBusiness);
 
 router.get('/', (req, res) => {
   const q = (req.query.q || '').trim();
   const type = (req.query.type || '').trim();
   const limit = Math.min(Number(req.query.limit) || 200, 500);
 
-  const where = [];
-  const params = [];
+  const where = ['c.business_id = ?'];
+  const params = [req.business.id];
   if (q) {
     where.push('(c.name LIKE ? OR c.code LIKE ? OR c.phone LIKE ?)');
     const like = `%${q}%`;
@@ -25,7 +27,7 @@ router.get('/', (req, res) => {
            c.id AS customer_id, c.name AS customer_name, c.code AS customer_code
     FROM movements m
     JOIN customers c ON c.id = m.customer_id
-    ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+    WHERE ${where.join(' AND ')}
     ORDER BY m.created_at DESC, m.id DESC
     LIMIT ?
   `).all(...params, limit);

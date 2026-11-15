@@ -1,24 +1,28 @@
 import { Router } from 'express';
 import { db, sendError } from '../db.js';
 import { notifyWalletUpdate } from '../wallet/index.js';
+import { requireBusiness } from '../auth.js';
 
 const router = Router();
 
+router.use(requireBusiness);
+
 const STAMP_COOLDOWN_SECONDS = Number(process.env.STAMP_COOLDOWN_SECONDS || 60);
 
-function getCardFull(id) {
+function getCardFull(id, businessId) {
   return db.prepare(`
     SELECT k.*, t.name AS template_name, t.stamps_required, t.color, t.icon,
            r.name AS reward_name, r.description AS reward_description
     FROM cards k
+    JOIN customers c ON c.id = k.customer_id
     JOIN card_templates t ON t.id = k.template_id
     LEFT JOIN rewards r ON r.id = t.reward_id
-    WHERE k.id = ?
-  `).get(id);
+    WHERE k.id = ? AND c.business_id = ?
+  `).get(id, businessId);
 }
 
 router.post('/:id/stamp', (req, res) => {
-  const card = getCardFull(req.params.id);
+  const card = getCardFull(req.params.id, req.business.id);
   if (!card) return sendError(res, 404, 'Tarjeta no encontrada.');
 
   if (card.status === 'reward_ready') {
@@ -61,7 +65,7 @@ router.post('/:id/stamp', (req, res) => {
   const completed = stamp();
   notifyWalletUpdate(card.customer_id);
   res.json({
-    card: getCardFull(card.id),
+    card: getCardFull(card.id, req.business.id),
     reward_ready: completed,
     message: completed
       ? `¡Tarjeta completa! Recompensa desbloqueada: ${card.reward_name || 'premio'}.`
@@ -70,7 +74,7 @@ router.post('/:id/stamp', (req, res) => {
 });
 
 router.post('/:id/redeem', (req, res) => {
-  const card = getCardFull(req.params.id);
+  const card = getCardFull(req.params.id, req.business.id);
   if (!card) return sendError(res, 404, 'Tarjeta no encontrada.');
 
   if (card.status === 'active') {
@@ -94,8 +98,8 @@ router.post('/:id/redeem', (req, res) => {
   const newCardId = redeem();
   notifyWalletUpdate(card.customer_id);
   res.json({
-    redeemed_card: getCardFull(card.id),
-    new_card: getCardFull(newCardId),
+    redeemed_card: getCardFull(card.id, req.business.id),
+    new_card: getCardFull(newCardId, req.business.id),
     message: `Canje registrado: ${card.reward_name || 'recompensa'}. Se inició una nueva tarjeta.`,
   });
 });

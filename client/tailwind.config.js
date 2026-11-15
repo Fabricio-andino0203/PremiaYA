@@ -4,11 +4,23 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
       },
       colors: {
-        cream: '#FBF9F4',
-        ink: '#1E1B2E',
+        cream: '#F8F5FD',
+        ink: '#241B35',
+        brand: {
+          50: '#F6F0FF',
+          100: '#EDE2FF',
+          200: '#DCC8FF',
+          400: '#9D5CF0',
+          500: '#8343E3',
+          600: '#6C2BD9',
+          700: '#5A21B8',
+          800: '#471A92',
+        },
+        sun: '#FF8A00',
+        accent: '#FF4DA6',
       },
       borderRadius: {
         '4xl': '2rem',

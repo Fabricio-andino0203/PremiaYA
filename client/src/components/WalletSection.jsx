@@ -29,7 +29,7 @@ function DemoBanner() {
 
 function ApplePassPreview({ pass, serial }) {
   return (
-    <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-xl">
+    <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 to-brand-800 text-white shadow-xl">
       <div className="flex items-center justify-between px-5 pt-4">
         <div className="flex items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/20 text-base">
@@ -79,9 +79,9 @@ function ApplePassPreview({ pass, serial }) {
 function GooglePassPreview({ pass, serial }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-ink/10 bg-white shadow-xl">
-      <div className="h-2 bg-rose-500" />
+      <div className="h-2 bg-brand-600" />
       <div className="flex items-center gap-2 px-5 pt-4">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-rose-50 text-base">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-50 text-base">
           {pass.icon}
         </span>
         <div className="leading-tight">
@@ -96,7 +96,7 @@ function GooglePassPreview({ pass, serial }) {
       <div className="grid grid-cols-2 gap-3 px-5 pt-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wide text-ink/45">Sellos</p>
-          <p className="text-2xl font-extrabold text-rose-500">
+          <p className="text-2xl font-extrabold text-brand-600">
             {pass.stamps}/{pass.stampsRequired}
           </p>
         </div>
@@ -109,7 +109,7 @@ function GooglePassPreview({ pass, serial }) {
       </div>
       <div className="mx-5 mt-3 h-2 overflow-hidden rounded-full bg-ink/5">
         <div
-          className="h-full rounded-full bg-rose-500 transition-all duration-500"
+          className="h-full rounded-full bg-brand-600 transition-all duration-500"
           style={{ width: `${pass.progress}%` }}
         />
       </div>
@@ -155,6 +155,10 @@ export default function WalletSection({ code }) {
         loadPasses();
       } else if (res.save_url) {
         window.open(res.save_url, '_blank');
+        loadPasses();
+      } else if (res.download_url) {
+        window.location.assign(res.download_url);
+        loadPasses();
       }
     } catch (e) {
       setError(e.message);

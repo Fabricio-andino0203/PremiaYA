@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Stamp as StampIcon, Gift } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Stamp as StampIcon, Gift, MessageCircle } from 'lucide-react';
 import { api } from '../../lib/api.js';
+import { useAuth } from '../../lib/auth.jsx';
+import { whatsappLink } from '../../lib/theme.js';
 import StampCard from '../../components/StampCard.jsx';
 import Confetti from '../../components/Confetti.jsx';
 import {
@@ -11,6 +13,8 @@ import { formatDate } from '../../lib/theme.js';
 
 export default function ClienteDetalle() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const business = user?.business;
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
@@ -82,14 +86,28 @@ export default function ClienteDetalle() {
             {formatDate(data.created_at)}
           </p>
         </div>
-        <a
-          href={`/c/${data.code}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-2xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-bold text-ink/70 transition hover:bg-ink/5"
-        >
-          <ExternalLink size={15} /> Ver portal del cliente
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={whatsappLink(
+              business?.whatsapp_country_code || '506',
+              data.phone,
+              `¡Hola ${data.name.split(' ')[0]}! 🎁 Esta es tu tarjeta de recompensas de ${business?.name || 'nuestro negocio'}: ${window.location.origin}/c/${data.code}`
+            )}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-2xl bg-[#25D366] px-4 py-2.5 text-sm font-bold text-white shadow-md transition hover:brightness-95"
+          >
+            <MessageCircle size={15} /> Enviar por WhatsApp
+          </a>
+          <a
+            href={`/c/${data.code}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-2xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-bold text-ink/70 transition hover:bg-ink/5"
+          >
+            <ExternalLink size={15} /> Ver portal
+          </a>
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-5">
@@ -101,6 +119,7 @@ export default function ClienteDetalle() {
               <div key={card.id} className="space-y-3">
                 <StampCard
                   name={card.template_name}
+                  brand={business?.name}
                   icon={card.icon}
                   color={card.color}
                   stampsRequired={card.stamps_required}

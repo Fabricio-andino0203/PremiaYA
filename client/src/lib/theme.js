@@ -65,6 +65,11 @@ export function formatDate(iso) {
   });
 }
 
+export function whatsappLink(countryCode, phone, text) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  return `https://wa.me/${countryCode}${digits}?text=${encodeURIComponent(text)}`;
+}
+
 export function timeAgo(iso) {
   const seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
   if (seconds < 60) return 'hace instantes';

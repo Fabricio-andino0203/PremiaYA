@@ -1,82 +1,91 @@
-# Fresko Rewards — Sistema Digital de Recompensas (Demo)
+# 🎁 PremiaYa — Sistema de fidelización y recompensas (SaaS)
 
-Demo funcional de un sistema de fidelización con tarjetas digitales de sellos para un negocio de smoothies y bebidas frías.
+*Premia a tus clientes. Hazlos volver.* — By Andino Software
 
-- **Panel administrativo** (`/admin`): dashboard, clientes, registro de sellos, tarjetas, recompensas e historial.
-- **Portal del cliente** (`/c/CODIGO`): tarjeta digital, progreso de sellos, QR personal, premios e historial. Optimizado para celular.
+Plataforma SaaS multi-tenant de tarjetas digitales de sellos para cafeterías, smoothie bars, heladerías, restaurantes y más.
+
+## Módulos
+
+- **Super Admin** (`/super`): dashboard del SaaS, gestión de negocios (alta con usuario dueño), planes y precios, registro de pagos.
+- **Panel del negocio** (`/admin`): dashboard, clientes, registro de sellos, tarjetas, recompensas, historial y ajustes (marca, WhatsApp, QR de auto-registro, plan y pagos).
+- **Portal del cliente** (`/c/CODIGO`): tarjeta digital con la marca del negocio, QR personal, Apple/Google Wallet e historial. Móvil-first, sin login.
+- **Auto-registro** (`/r/slug-del-negocio`): página pública para que el cliente se registre solo escaneando el QR del mostrador.
 
 ## Stack
 
-- **Frontend:** React 18 + Vite + Tailwind CSS (`client/`)
-- **Backend:** Node.js + Express (`server/`)
-- **Base de datos:** SQLite (better-sqlite3)
+React 18 + Vite + Tailwind (cliente) · Node/Express + SQLite (servidor) · Sesiones con cookie httpOnly + bcrypt.
 
 ## Desarrollo local
-
-Requisitos: Node.js 20 o superior.
 
 ```bash
 npm install
 npm run dev
 ```
 
-- App (frontend con proxy a la API): http://localhost:5173
-- API: http://localhost:3001
+- App: http://localhost:5173 · API: http://localhost:3001
+- **Credenciales demo** — Negocio: `demo@fresko.com` / `fresko123` · Super admin: `superadmin@premiaya.com` / `PremiaYa#2026` (cambiarlas en producción).
+- Para resetear la demo: borrá `server/data/app.db` y reiniciá.
 
-Al iniciar por primera vez se crean datos de ejemplo (clientes, tarjetas y movimientos). Para resetear la demo, borrá `server/data/app.db` y reiniciá el servidor.
+## Reglas de negocio
 
-## Reglas de negocio implementadas en el servidor
+- Multi-tenant: cada negocio ve solo sus clientes, tarjetas, premios y movimientos.
+- Código único de cliente (`PY-XXXX`) = QR permanente, sin datos sensibles.
+- Anti-duplicado de sellos (60 s, `STAMP_COOLDOWN_SECONDS`); canje solo con tarjeta completa; nueva tarjeta automática tras canje; historial transaccional consistente.
+- Límite de clientes por plan (se valida al registrar, en panel y en auto-registro).
+- Negocios suspendidos: sin acceso al panel ni al auto-registro.
 
-- Cada cliente tiene un código único (`SMO-XXXX`) que es la base de su QR.
-- No se permiten sellos duplicados: dos sellos a la misma tarjeta dentro de 60 segundos se rechazan (configurable con `STAMP_COOLDOWN_SECONDS`).
-- Todo movimiento (registro, sello, canje) queda en el historial con fecha y hora.
-- Un canje solo es posible con la tarjeta completa (`reward_ready`); al canjear se inicia automáticamente una nueva tarjeta.
-- El saldo de sellos y el historial se escriben en la misma transacción, por lo que siempre quedan consistentes.
+## WhatsApp
+
+Desde el detalle del cliente, el botón **Enviar por WhatsApp** abre `wa.me` con el enlace de la tarjeta. El código de país se configura en Ajustes (p. ej. 506 CR, 504 HN, 52 MX). No requiere API de Meta; para envíos automáticos masivos se integraría WhatsApp Business API después.
 
 ## Apple Wallet y Google Wallet
 
-El portal del cliente incluye los botones **Agregar a Apple Wallet** y **Agregar a Google Wallet** (ordenados según la plataforma del dispositivo). Mientras no haya credenciales oficiales configuradas, el sistema opera en **modo DEMO claramente identificado**: se muestra una vista previa del pase y se registra en `wallet_passes` con un serial estable por cliente (`PK-SMO-XXXX` / `GW-SMO-XXXX`), que **nunca cambia por compra**. Cada sello o canje actualiza automáticamente el snapshot del pase (`notifyWalletUpdate`), que en modo real dispara el push de Apple (APNs) y el PATCH del LoyaltyObject de Google.
+La **firma real está implementada** (`server/wallet/`): `.pkpass` firmado (PKCS#7 + manifest, pipeline verificado con certificado de prueba) y JWT RS256 de Google con creación de clase + PATCH del objeto al sumar sellos. Sin credenciales, el portal opera en modo **DEMO claramente identificado**.
 
-Para activar las integraciones oficiales (`server/wallet/`):
+Para activarlas, configurar en Railway (variables del servicio):
 
-**Apple Wallet** (PassKit, `applePass.js`):
-- `APPLE_PASS_TYPE_ID` — ej. `pass.com.fresko.rewards`
-- `APPLE_TEAM_ID` — Team ID de Apple Developer
-- `APPLE_PASS_CERT_P12_B64` + `APPLE_PASS_CERT_PASSWORD` — certificado del Pass Type ID
-- `APPLE_WWDR_CERT_PEM_B64` — certificado intermedio WWDR
-- Falta implementar: firma PKCS#7 del manifest, empaquetado `.pkpass` y el web service de actualización de pases.
+**Apple Wallet** — requiere cuenta Apple Developer ($99/año):
+| Variable | Qué es |
+|---|---|
+| `APPLE_PASS_TYPE_ID` | Pass Type ID (ej. `pass.com.premiaya.rewards`), creado en el portal de Apple Developer |
+| `APPLE_TEAM_ID` | Team ID de la cuenta |
+| `APPLE_PASS_CERT_P12_B64` | Certificado del Pass Type ID exportado como `.p12`, en base64 |
+| `APPLE_PASS_CERT_PASSWORD` | Contraseña del `.p12` |
+| `APPLE_WWDR_CERT_PEM_B64` | Certificado intermedio WWDR de Apple (PEM) en base64 |
 
-**Google Wallet** (`googleWallet.js`):
-- `GOOGLE_WALLET_ISSUER_ID` — Issuer ID de Google Pay & Wallet Console
-- `GOOGLE_SERVICE_ACCOUNT_JSON` — credenciales de la cuenta de servicio
-- Falta implementar: creación de la LoyaltyClass, firma del JWT de guardado y PATCH del objeto en cada actualización.
+Pendiente para actualización push en iPhone: web service de PassKit + APNs (hoy el pase se actualiza al re-descargarlo).
 
-El QR del pase contiene solo el código público del cliente (`SMO-XXXX`), sin datos sensibles.
+**Google Wallet** — requiere cuenta en Google Pay & Wallet Console:
+| Variable | Qué es |
+|---|---|
+| `GOOGLE_WALLET_ISSUER_ID` | Issuer ID numérico de la consola |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | JSON completo de la cuenta de servicio con rol Wallet Object Issuer |
+
+Con esto, el botón genera el enlace real "Guardar en Google Wallet" y cada sello actualiza el pase automáticamente (PATCH del LoyaltyObject).
 
 ## Despliegue en Railway
 
-1. Subí el repositorio a GitHub y creá un servicio en Railway desde ese repo. Railway usa `railway.json` (build: `npm install && npm run build`, start: `npm start`).
-2. **Volumen:** en el servicio, agregá un volumen montado en `/data` para que la base de datos sobreviva a los deploys.
-3. **Variables de entorno:**
-   - `DATABASE_PATH=/data/app.db`
-   - (opcional) `STAMP_COOLDOWN_SECONDS=60`
-4. Generá un dominio público en **Settings → Networking**.
+1. Push a `main` → redeploy automático (servicio conectado al repo).
+2. Volumen montado en `/data` + `DATABASE_PATH=/data/app.db` (ya configurado).
+3. Variables opcionales: `STAMP_COOLDOWN_SECONDS` y las credenciales Wallet de arriba.
+4. Healthcheck: `/api/stats/health`.
 
-Si el volumen está vacío (primer deploy), la base se crea y se cargan los datos de ejemplo automáticamente.
+⚠️ La migración demo→SaaS recrea la base si detecta el esquema anterior (se pierden los datos demo previos).
 
 ## Estructura
 
 ```
-├── client/          # React + Vite + Tailwind
-│   └── src/
-│       ├── pages/admin/    # Panel administrativo
-│       ├── pages/portal/   # Portal del cliente
-│       ├── components/     # StampCard, layout, UI compartida
-│       └── lib/            # api fetch wrapper, temas y formatos
-├── server/          # Express + SQLite
-│   ├── index.js     # API + sirve client/dist en producción
-│   ├── db.js        # Esquema y conexión
-│   ├── seed.js      # Datos de ejemplo
-│   └── routes/      # customers, cards, templates, rewards, movements, stats
-└── railway.json     # Configuración de build/deploy en Railway
+├── client/src/
+│   ├── pages/admin/     # Panel del negocio (+ Configuración)
+│   ├── pages/super/     # Super admin (Dashboard, Negocios, Planes, Pagos)
+│   ├── pages/portal/    # Portal del cliente
+│   ├── pages/Login.jsx  # Login unificado
+│   ├── pages/Registro.jsx  # Auto-registro público /r/:slug
+│   ├── components/      # StampCard, WalletSection, layouts, UI
+│   └── lib/             # api, auth (contexto), temas
+└── server/
+    ├── auth.js          # Sesiones, bcrypt, middlewares de rol
+    ├── db.js            # Esquema multi-tenant + migración
+    ├── routes/          # auth, super, business, public, customers, cards…
+    └── wallet/          # applePass (pkpass firmado), googleWallet (JWT+API), png
 ```

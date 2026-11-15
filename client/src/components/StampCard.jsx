@@ -7,6 +7,7 @@ import { themeOf } from '../lib/theme.js';
  */
 export default function StampCard({
   name,
+  brand = 'PremiaYa',
   icon = '🥤',
   color = 'mango',
   stampsRequired = 8,
@@ -34,8 +35,8 @@ export default function StampCard({
 
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/70">
-            Fresko Rewards
+          <p className="truncate text-[11px] font-bold uppercase tracking-widest text-white/70">
+            {brand}
           </p>
           <h3 className={`truncate font-extrabold ${compact ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             {name}

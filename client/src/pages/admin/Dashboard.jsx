@@ -95,7 +95,7 @@ export default function Dashboard() {
             </p>
             <div className="mt-3 h-3 overflow-hidden rounded-full bg-ink/5">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-500 transition-all duration-700"
+                className="h-full rounded-full bg-gradient-to-r from-brand-500 to-accent transition-all duration-700"
                 style={{ width: `${stats.completionRate}%` }}
               />
             </div>
@@ -107,7 +107,7 @@ export default function Dashboard() {
             <div className="flex flex-col gap-2">
               <Link
                 to="/admin/sellos"
-                className="rounded-2xl bg-ink px-4 py-2.5 text-center text-sm font-bold text-white transition hover:bg-ink/85"
+                className="rounded-2xl bg-brand-600 px-4 py-2.5 text-center text-sm font-bold text-white transition hover:bg-brand-700"
               >
                 ➕ Registrar un sello
               </Link>

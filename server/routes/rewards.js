@@ -1,17 +1,21 @@
 import { Router } from 'express';
 import { db, sendError } from '../db.js';
+import { requireBusiness } from '../auth.js';
 
 const router = Router();
+router.use(requireBusiness);
 
-router.get('/', (_req, res) => {
+router.get('/', (req, res) => {
+  const bid = req.business.id;
+
   const rewards = db.prepare(`
     SELECT r.*,
       (SELECT COUNT(*) FROM card_templates t WHERE t.reward_id = r.id AND t.active = 1) AS linked_templates,
       (SELECT COUNT(*) FROM movements m JOIN cards k ON k.id = m.card_id
         JOIN card_templates t ON t.id = k.template_id
         WHERE m.type = 'redeem' AND t.reward_id = r.id) AS times_redeemed
-    FROM rewards r ORDER BY r.created_at ASC
-  `).all();
+    FROM rewards r WHERE r.business_id = ? ORDER BY r.created_at ASC
+  `).all(bid);
 
   const pending = db.prepare(`
     SELECT k.id AS card_id, k.completed_at, c.id AS customer_id, c.name AS customer_name, c.code,
@@ -21,18 +25,18 @@ router.get('/', (_req, res) => {
     JOIN customers c ON c.id = k.customer_id
     JOIN card_templates t ON t.id = k.template_id
     LEFT JOIN rewards r ON r.id = t.reward_id
-    WHERE k.status = 'reward_ready'
+    WHERE k.status = 'reward_ready' AND c.business_id = ?
     ORDER BY k.completed_at ASC
-  `).all();
+  `).all(bid);
 
   const redeemed = db.prepare(`
     SELECT m.id, m.detail, m.created_at, c.name AS customer_name, c.id AS customer_id
     FROM movements m
     JOIN customers c ON c.id = m.customer_id
-    WHERE m.type = 'redeem'
+    WHERE m.type = 'redeem' AND c.business_id = ?
     ORDER BY m.created_at DESC, m.id DESC
     LIMIT 50
-  `).all();
+  `).all(bid);
 
   res.json({ rewards, pending, redeemed });
 });
@@ -47,8 +51,9 @@ router.post('/', (req, res) => {
     return sendError(res, 400, 'La cantidad de sellos debe ser un número entre 1 y 20.');
   }
 
-  const id = db.prepare('INSERT INTO rewards (name, description, stamps_required) VALUES (?, ?, ?)')
-    .run(name, description, stamps).lastInsertRowid;
+  const id = db.prepare(
+    'INSERT INTO rewards (business_id, name, description, stamps_required) VALUES (?, ?, ?, ?)'
+  ).run(req.business.id, name, description, stamps).lastInsertRowid;
   res.status(201).json(db.prepare('SELECT * FROM rewards WHERE id = ?').get(id));
 });
 

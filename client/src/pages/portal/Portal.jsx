@@ -60,12 +60,14 @@ export default function Portal() {
       {/* Header */}
       <header className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 text-xl shadow-md shadow-rose-200">
-            🥤
+          <span
+            className={`grid h-10 w-10 place-items-center rounded-2xl text-xl shadow-md ${themeOf(data.business?.theme).grad}`}
+          >
+            {data.business?.icon || '🎁'}
           </span>
           <div className="leading-tight">
-            <p className="text-base font-extrabold">Fresko</p>
-            <p className="text-xs font-medium text-ink/50">Rewards</p>
+            <p className="text-base font-extrabold">{data.business?.name || 'PremiaYa'}</p>
+            <p className="text-xs font-medium text-ink/50">Recompensas</p>
           </div>
         </div>
         <span className="rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-ink/60 shadow-sm">
@@ -102,6 +104,7 @@ export default function Portal() {
             <StampCard
               key={card.id}
               name={card.template_name}
+              brand={data.business?.name || 'PremiaYa'}
               icon={card.icon}
               color={card.color}
               stampsRequired={card.stamps_required}
@@ -189,7 +192,7 @@ export default function Portal() {
 
       <footer className="mt-10 pb-6 text-center text-xs font-medium text-ink/35">
         <Sparkles size={14} className="mx-auto mb-1" />
-        Fresko Rewards · Sumá sellos, ganá premios
+        Impulsado por 🎁 Premia<span className="text-sun">Ya</span> · Sumá sellos, ganá premios
       </footer>
     </div>
   );
